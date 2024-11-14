@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "chrono": "cpp",
+        "array": "cpp",
+        "bitset": "cpp",
+        "string_view": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "format": "cpp",
+        "initializer_list": "cpp",
+        "span": "cpp"
+    }
+}
