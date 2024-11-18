@@ -6,6 +6,10 @@
 // For IO
 #include <sys/stat.h>
 
+const int WORLD_WIDTH = 320;
+const int WORLD_HEIGHT = 180;
+const int TILESIZE = 8;
+
 #define println(x) std::cout << x << std::endl
 #define TRACE(x) println("\x1b[32mTRACE: " << x << "\x1b[0m");
 #define WARN(x) println("\x1b[33mWARNING: " << x << "\x1b[0m");
@@ -19,11 +23,3 @@ long get_file_size(const std::string& path);
 std::string read_file(const std::string& path);
 void write_file(const std::string& path, const std::string& content);
 bool copy_file(const std::string& src, const std::string& dest);
-
-// math stuff
-struct Vec2 {
-  float x, y;
-};
-struct IVec2 {
-  int x, y;
-};

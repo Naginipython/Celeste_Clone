@@ -2,32 +2,40 @@
 #include "window.h"
 #include "game.h"
 #include <dlfcn.h>
-#include <thread>
-#include <chrono>
 
 // DLL stuff
 typedef decltype(update_game) update_game_type;
 static update_game_type* update_game_ptr;
+static void* gameDLL;
 void reload_dll();
 
 int main(int argc, char* argv[]) {
   Window window{1200, 720, "Celeste Clone"};
+  GameState gameState;
   
   while (window.isRunning) {
     reload_dll();
-    update_game(window);
+    update_game(window, gameState);
     window.update();
   }
   
+  TRACE("Got here");
+  if (gameDLL) {
+    dlclose(gameDLL);
+    gameDLL = nullptr;
+  }
+  TRACE("Got here 2");
+  update_game_ptr = nullptr;
+  TRACE("Got here 3");
   return 0;
 }
 
-void update_game(Window& window) {
-  update_game_ptr(window);
+void update_game(Window& window, GameState& gameState) {
+  update_game_ptr(window, gameState);
 }
 
+// TODO: System dependance
 void reload_dll() {
-  static void* gameDLL;
   static time_t lastWrite;
 
   long timestamp = get_timestamp("./zig-out/lib/libgame.so");

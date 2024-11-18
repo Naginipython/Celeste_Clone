@@ -9,11 +9,25 @@ struct GLContext {
   unsigned int textureID{};
   unsigned int transformBufferId{};
   unsigned int screenSizeID{};
+  unsigned int projectionID{};
+};
+
+struct Camera2D {
+  float zoom{1.0f};
+  Vec2 dimentions;
+  Vec2 position;
 };
 
 struct RenderData {
+  Camera2D gameCamera;
+  Camera2D uiCamera;
+
   int transformCount;
   Transform transforms[MAX_TRANSFORMS];
+
+  inline RenderData() {
+    gameCamera.dimentions = {WORLD_WIDTH, WORLD_HEIGHT};
+  }
 };
 
 class Window {
@@ -24,8 +38,8 @@ class Window {
   GLContext glContext{};
   SDL_Surface* texture;
 
-  RenderData renderData;
  public:
+  RenderData renderData;
   bool isRunning{true};
   Window(int x, int y, const std::string& title);
   ~Window();
@@ -34,7 +48,5 @@ class Window {
   void init_gl();
   void update();
   void gl_render();
-  void draw_sprite(SpriteID id, Vec2 pos, Vec2 size);
-  void test();
-  void test2() { TRACE("test2"); }
+  void draw_sprite(SpriteID id, Vec2 pos);
 };

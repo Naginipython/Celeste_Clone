@@ -10,6 +10,7 @@ struct Transform {
 
 // uniforms
 uniform vec2 screenSize;
+uniform mat4 projection;
 
 // input
 layout (std430, binding = 0) buffer TransformBuffer {
@@ -46,9 +47,9 @@ void main() {
     };
     // Normalize the verticies
     vec2 vertPos = verticies[gl_VertexID];
-    vertPos.y = -vertPos.y + screenSize.y;
-    vertPos = 2.0 * (vertPos / screenSize) - 1.0;
-    gl_Position = vec4(vertPos, 0.0, 1.0);
+    // vertPos.y = -vertPos.y + screenSize.y;
+    // vertPos = 2.0 * (vertPos / screenSize) - 1.0;
+    gl_Position = projection * vec4(vertPos, 0.0, 1.0);
     
     textureCoordsOut = textureCoords[gl_VertexID];
 }

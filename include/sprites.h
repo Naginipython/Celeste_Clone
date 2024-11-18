@@ -1,5 +1,5 @@
 #pragma once
-#include "main.h"
+#include "math_structs.h"
 
 constexpr int MAX_TRANSFORMS = 1024;
 

@@ -66,17 +66,14 @@ void Window::update() {
   }
 }
 
-void Window::draw_sprite(SpriteID id, Vec2 pos, Vec2 size) {
+void Window::draw_sprite(SpriteID id, Vec2 pos) {
   Sprite sprite = get_Sprite(id);
 
   Transform transform{};
+  transform.position = pos - ivec2_to_vec2(sprite.spriteSize) / 2.0f;
+  transform.size = ivec2_to_vec2(sprite.spriteSize);
   transform.atlasOffset = sprite.atlasOffset;
   transform.spriteSize = sprite.spriteSize;
-  transform.position = pos;
-  transform.size = size;
 
   renderData.transforms[renderData.transformCount++] = transform;
-}
-void Window::test() {
-  TRACE("test");
 }

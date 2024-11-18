@@ -72,6 +72,7 @@ void Window::init_gl() {
 
   // Uniforms
   glContext.screenSizeID = glGetUniformLocation(glContext.programID, "screenSize");
+  glContext.projectionID = glGetUniformLocation(glContext.programID, "projection");
 
   // Depth testing
   glEnable(GL_DEPTH_TEST);
@@ -90,6 +91,15 @@ void Window::gl_render() {
   // Copy uniform data
   Vec2 screenSize{(float)get_width(), (float)get_height()};
   glUniform2fv(glContext.screenSizeID, 1, &screenSize.x);
+
+  Camera2D gameCamera = renderData.gameCamera;
+  Matrix4 projection = camera_projection(
+    gameCamera.position.x - gameCamera.dimentions.x / 2.0f, 
+    gameCamera.position.x + gameCamera.dimentions.x / 2.0f, 
+    gameCamera.position.y - gameCamera.dimentions.y / 2.0f, 
+    gameCamera.position.y + gameCamera.dimentions.y / 2.0f
+  );
+  glUniformMatrix4fv(glContext.projectionID, 1, GL_TRUE, &projection.ax);
 
   // copies transform data to the buffer
   glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData.transformCount, renderData.transforms);

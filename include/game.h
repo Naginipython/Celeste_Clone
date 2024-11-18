@@ -2,6 +2,11 @@
 
 #include "window.h"
 
+class GameState {
+ public:
+  // todo
+};
+
 #ifdef _WIN32
   #define EXPORT_FN __declspec(dllexport)
 #elif __linux__
@@ -11,5 +16,5 @@
 #endif
 
 extern "C" {
-  EXPORT_FN void update_game(Window& windowIn);
+  EXPORT_FN void update_game(Window& window, GameState& gameState);
 }
