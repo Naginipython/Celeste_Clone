@@ -35,4 +35,6 @@ class Window {
   void update();
   void gl_render();
   void draw_sprite(SpriteID id, Vec2 pos, Vec2 size);
+  void test();
+  void test2() { TRACE("test2"); }
 };

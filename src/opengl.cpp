@@ -60,6 +60,7 @@ void Window::init_gl() {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, texture->w, texture->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->pixels);
 
   SDL_FreeSurface(texture);
+  texture = NULL;
 
   glEnable(GL_FRAMEBUFFER_SRGB);
   glDisable(0x809D);

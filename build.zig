@@ -3,7 +3,7 @@ const std = @import("std");
 fn linker(exe: *std.Build.Step.Compile, files: []const []const u8, b: *std.Build, target: std.Build.ResolvedTarget) void {
     exe.addCSourceFiles(.{
         .files = files,
-        .flags = &[_][]const u8{},
+        .flags = &[_][]const u8{"-Wall"},
     });
     exe.addIncludePath(b.path("include"));
     exe.linkLibC();
@@ -23,17 +23,31 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const files = try findFiles("src");
+    // Main build
+    const files = try findFiles("src", &[_][]const u8{"dll"});
     std.debug.print("Files built:\n{s}\n", .{files});
 
     const exe = b.addExecutable(.{ .name = "main", .target = target });
     linker(exe, files, b, target);
 
     b.installArtifact(exe);
-    const run_cmd = b.addRunArtifact(exe);
-    run_cmd.step.dependOn(b.getInstallStep());
+
+    // dll
+    const dll_files = try findFiles("src", &[_][]const u8{"main"});
+    // const dll_files = &[_][]const u8{"src/dll-game.cpp", "src/window.cpp", "src/opengl.cpp", "src/fileIO.cpp"};
+    const dll = b.addSharedLibrary(.{ .name = "game", .target = target, .optimize = optimize });
+    dll.addCSourceFiles(.{
+        .files = dll_files,
+        .flags = &[_][]const u8{},
+    });
+    dll.addIncludePath(b.path("include"));
+    dll.linkLibC();
+    dll.linkLibCpp();
+    b.installArtifact(dll);
 
     // ------ Run ------
+    const run_cmd = b.addRunArtifact(exe);
+    run_cmd.step.dependOn(b.getInstallStep());
     if (b.args) |args| {
         run_cmd.addArgs(args);
     }
@@ -42,19 +56,13 @@ pub fn build(b: *std.Build) !void {
     run_step.dependOn(&run_cmd.step);
 
     // ------ Tests ------
-    const test_files = try findFiles("tests");
-    var files_lst = std.ArrayList([]const u8).init(std.heap.page_allocator);
-    for (files) |f|
-        if (!std.mem.eql(u8, f, "src/main.cpp"))
-            try files_lst.append(f);
-    try files_lst.appendSlice(test_files);
-    const full_test_files = try files_lst.toOwnedSlice();
-    std.debug.print("Test Files built:\n{s}\n", .{full_test_files});
+    const test_files = try findFiles("tests", &[_][]const u8{"main.cpp"});
+    std.debug.print("Test Files built:\n{s}\n", .{test_files});
 
     // combine with `files`, except src/main.c or src/main.cpp
     const tests_exe = b.addExecutable(.{ .name = "tests", .target = target });
 
-    linker(tests_exe, full_test_files, b, target);
+    linker(tests_exe, test_files, b, target);
     const googletest_dep = b.dependency("googletest", .{
         .target = target,
         .optimize = optimize,
@@ -75,7 +83,8 @@ pub fn build(b: *std.Build) !void {
     clean_step.dependOn(&b.addRemoveDirTree(b.pathFromRoot(".zig-cache")).step);
 }
 
-fn findFiles(src: []const u8) ![]const []const u8 {
+// TODO: Add ignore word
+fn findFiles(src: []const u8, ignore_list: []const []const u8) ![]const []const u8 {
     var result = std.ArrayList([]const u8).init(std.heap.page_allocator);
     // todo: error handling for root (for test dir)
     var root = try std.fs.cwd().openDir(src, .{ .iterate = true });
@@ -83,6 +92,18 @@ fn findFiles(src: []const u8) ![]const []const u8 {
 
     var iter = root.iterate();
     while (try iter.next()) |entry| {
+        // ignore if on ignore list
+        var ignore = false;
+        for (ignore_list) |item|
+            if (std.mem.indexOf(u8, entry.name, item) != null) {
+                ignore = true;
+                break;
+            };
+        if (ignore) {
+            continue;
+        }
+
+        // Create item
         var item = std.ArrayList(u8).init(std.heap.page_allocator);
         try item.appendSlice(src);
         try item.append('/');
@@ -97,7 +118,7 @@ fn findFiles(src: []const u8) ![]const []const u8 {
         }
         if (entry.kind == .directory) {
             const dir_u8 = try item.toOwnedSlice();
-            const files = try findFiles(dir_u8);
+            const files = try findFiles(dir_u8, ignore_list);
             for (files) |f|
                 try result.append(f);
         }
