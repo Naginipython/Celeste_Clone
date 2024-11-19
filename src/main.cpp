@@ -5,8 +5,7 @@
 
 // DLL stuff
 typedef decltype(update_game) update_game_type;
-static update_game_type* update_game_ptr;
-static void* gameDLL;
+static update_game_type* update_game_ptr = nullptr;
 void reload_dll();
 
 int main(int argc, char* argv[]) {
@@ -19,14 +18,6 @@ int main(int argc, char* argv[]) {
     window.update();
   }
   
-  TRACE("Got here");
-  if (gameDLL) {
-    dlclose(gameDLL);
-    gameDLL = nullptr;
-  }
-  TRACE("Got here 2");
-  update_game_ptr = nullptr;
-  TRACE("Got here 3");
   return 0;
 }
 
@@ -36,6 +27,7 @@ void update_game(Window& window, GameState& gameState) {
 
 // TODO: System dependance
 void reload_dll() {
+  static void* gameDLL = nullptr;
   static time_t lastWrite;
 
   long timestamp = get_timestamp("./zig-out/lib/libgame.so");
