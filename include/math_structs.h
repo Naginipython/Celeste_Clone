@@ -11,10 +11,10 @@ struct Vec2 {
 };
 struct IVec2 {
   int x, y;
+  inline Vec2 to_vec2() {
+    return Vec2{(float)x, (float)y};
+  }
 };
-inline Vec2 ivec2_to_vec2(IVec2 v) {
-  return Vec2{(float)v.x, (float)v.y};
-}
 
 struct Vec4 {
   union {

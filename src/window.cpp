@@ -50,30 +50,33 @@ void Window::update() {
   // Render
   gl_render();
 
-  // Handle events
-  SDL_Event event;
-  while (SDL_PollEvent(&event)) {
-    if (event.type == SDL_QUIT) isRunning = false;
-
-    if (event.type == SDL_KEYDOWN) switch (event.key.keysym.sym) {
-        case SDLK_ESCAPE:
-          isRunning = false;
-          break;
-        default:
-          println(event.key.keysym.sym);
-          break;
-      }
-  }
+  
 }
 
 void Window::draw_sprite(SpriteID id, Vec2 pos) {
   Sprite sprite = get_Sprite(id);
 
   Transform transform{};
-  transform.position = pos - ivec2_to_vec2(sprite.spriteSize) / 2.0f;
-  transform.size = ivec2_to_vec2(sprite.spriteSize);
+  transform.position = pos - sprite.spriteSize.to_vec2() / 2.0f;
+  transform.size = sprite.spriteSize.to_vec2();
   transform.atlasOffset = sprite.atlasOffset;
   transform.spriteSize = sprite.spriteSize;
 
   renderData.transforms[renderData.transformCount++] = transform;
+}
+void Window::draw_sprite(SpriteID id, IVec2 pos) {
+  draw_sprite(id, pos.to_vec2());
+}
+
+Vec2 Window::screen_to_world(Vec2 screenPos) {
+  Camera2D camera = renderData.gameCamera;
+  // [0; dimensions.x]
+  float xPos = (float)screenPos.x / get_width() * camera.dimentions.x;
+  // Offset to center
+  xPos += -camera.dimentions.x / 2.0f + camera.position.x;
+  // [0; dimensions.y]
+  float yPos = (float)screenPos.y / get_height() * camera.dimentions.y;
+  // Offset to center
+  yPos += -camera.dimentions.y / 2.0f + camera.position.y;
+  return {xPos, yPos};
 }

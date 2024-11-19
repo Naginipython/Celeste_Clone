@@ -9,8 +9,8 @@ static update_game_type* update_game_ptr = nullptr;
 void reload_dll();
 
 int main(int argc, char* argv[]) {
-  Window window{1200, 720, "Celeste Clone"};
-  GameState gameState;
+  Window window{WORLD_WIDTH*4, WORLD_HEIGHT*4, "Celeste Clone"};
+  GameState gameState{};
   
   while (window.isRunning) {
     reload_dll();

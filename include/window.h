@@ -49,4 +49,6 @@ class Window {
   void update();
   void gl_render();
   void draw_sprite(SpriteID id, Vec2 pos);
+  void draw_sprite(SpriteID id, IVec2 pos);
+  Vec2 screen_to_world(Vec2 screenPos);
 };
