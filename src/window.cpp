@@ -19,14 +19,11 @@ Window::Window(int width, int height, const std::string& title) {
   ASSERT(window != NULL, "Failed to create window" << SDL_GetError());
 
   sdlGlContext = SDL_GL_CreateContext(window);
-  ASSERT(sdlGlContext != NULL,
-         "Failed to create OpenGL context: " << SDL_GetError());
+  ASSERT(sdlGlContext != NULL, "Failed to create OpenGL context: " << SDL_GetError());
 
-  ASSERT(glewInit() == GLEW_OK,
-         "Failed to initialize GLEW: " << glewGetErrorString(glGetError()));
+  ASSERT(glewInit() == GLEW_OK, "Failed to initialize GLEW: " << glewGetErrorString(glGetError()));
 
-  ASSERT(IMG_Init(IMG_INIT_PNG) >= 0,
-         "Failed to initialize SDL_image: " << IMG_GetError());
+  ASSERT(IMG_Init(IMG_INIT_PNG) >= 0, "Failed to initialize SDL_image: " << IMG_GetError());
 
   texture = IMG_Load(TEXTURE_PATH.c_str());
   ASSERT(texture != NULL, "Failed to load texture: " << IMG_GetError());
@@ -68,6 +65,19 @@ void Window::draw_sprite(SpriteID id, IVec2 pos) {
   draw_sprite(id, pos.to_vec2());
 }
 
+void Window::draw_quad(Vec2 pos, Vec2 size) {
+  Transform transform{};
+  transform.position = pos - size / 2.0f;
+  transform.size = size;
+  transform.atlasOffset = {0, 0};
+  transform.spriteSize = {1, 1};
+
+  renderData.transforms[renderData.transformCount++] = transform;
+}
+void Window::draw_quad(Transform transform) {
+  renderData.transforms[renderData.transformCount++] = transform;
+}
+
 Vec2 Window::screen_to_world(Vec2 screenPos) {
   Camera2D camera = renderData.gameCamera;
   // [0; dimensions.x]
@@ -77,6 +87,10 @@ Vec2 Window::screen_to_world(Vec2 screenPos) {
   // [0; dimensions.y]
   float yPos = (float)screenPos.y / get_height() * camera.dimentions.y;
   // Offset to center
-  yPos += -camera.dimentions.y / 2.0f + camera.position.y;
+  yPos += camera.dimentions.y / 2.0f + camera.position.y;
   return {xPos, yPos};
+}
+IVec2 Window::screen_to_world(IVec2 screenPos) {
+  Vec2 result = screen_to_world(screenPos.to_vec2());
+  return {(int)result.x, (int)result.y};
 }

@@ -27,6 +27,8 @@ struct RenderData {
 
   inline RenderData() {
     gameCamera.dimentions = {WORLD_WIDTH, WORLD_HEIGHT};
+    // Sets camera back to 0,0 as top left
+    gameCamera.position = {WORLD_WIDTH/2, -WORLD_HEIGHT/2};
   }
 };
 
@@ -43,12 +45,17 @@ class Window {
   bool isRunning{true};
   Window(int x, int y, const std::string& title);
   ~Window();
+  void init_gl();
+
   const inline int get_width() const { int w, h; SDL_GetWindowSize(window, &w, &h); return w; }
   const inline int get_height() const { int w, h; SDL_GetWindowSize(window, &w, &h); return h; }
-  void init_gl();
+  
   void update();
   void gl_render();
   void draw_sprite(SpriteID id, Vec2 pos);
   void draw_sprite(SpriteID id, IVec2 pos);
+  void draw_quad(Vec2 pos, Vec2 size);
+  void draw_quad(Transform transform);
   Vec2 screen_to_world(Vec2 screenPos);
+  IVec2 screen_to_world(IVec2 screenPos);
 };

@@ -2,35 +2,33 @@
 #include "window.h"
 #include <GL/glew.h>
 
+unsigned int create_shader(unsigned int type, const std::string& code) {
+  unsigned int id = glCreateShader(type);
+  const char* src = code.c_str();
+  glShaderSource(id, 1, &src, NULL);
+  glCompileShader(id);
+
+  int result;
+  glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+  if (result == GL_FALSE) {
+    int length;
+    glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+    char* message = (char*)alloca(length * sizeof(char));
+    glGetShaderInfoLog(id, length, &length, message);
+    ERROR("Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader");
+    glDeleteShader(id);
+    ASSERT(false, "Failed to compile vertex shader: " << message);
+    return 0;
+  }
+  return id;
+}
+
 void Window::init_gl() {
   // shaders
-  unsigned int vertShaderId = glCreateShader(GL_VERTEX_SHADER);
-  unsigned int fragShaderId = glCreateShader(GL_FRAGMENT_SHADER);
-
   std::string vertShaderCode = read_file("resources/shaders/quad.vert");
   std::string fragShaderCode = read_file("resources/shaders/quad.frag");
-  const char* vertShaderCodeC = vertShaderCode.c_str();
-  const char* fragShaderCodeC = fragShaderCode.c_str();
-
-  glShaderSource(vertShaderId, 1, &vertShaderCodeC, NULL);
-  glShaderSource(fragShaderId, 1, &fragShaderCodeC, NULL);
-
-  glCompileShader(vertShaderId);
-  glCompileShader(fragShaderId);
-
-  // Check for errors
-  int success;
-  char infoLog[2048]{};
-  glGetShaderiv(vertShaderId, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(vertShaderId, 2048, NULL, infoLog);
-    ASSERT(false, "Failed to compile vertex shader: " << infoLog);
-  }
-  glGetShaderiv(fragShaderId, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    glGetShaderInfoLog(fragShaderId, 2048, NULL, infoLog);
-    ASSERT(false, "Failed to compile fragment shader: " << infoLog);
-  }
+  unsigned int vertShaderId = create_shader(GL_VERTEX_SHADER, vertShaderCode);
+  unsigned int fragShaderId = create_shader(GL_FRAGMENT_SHADER, fragShaderCode);
 
   glContext.programID = glCreateProgram();
   glAttachShader(glContext.programID, vertShaderId);

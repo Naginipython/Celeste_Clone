@@ -6,10 +6,11 @@
 // For IO
 #include <sys/stat.h>
 
-const int WORLD_WIDTH = 320;
-const int WORLD_HEIGHT = 180;
-const int TILESIZE = 8;
+constexpr int WORLD_WIDTH = 320;
+constexpr int WORLD_HEIGHT = 180;
+constexpr int TILESIZE = 8;
 
+#define BIT(x) 1 << (x)
 #define println(x) std::cout << x << std::endl
 #define TRACE(x) println("\x1b[32mTRACE: " << x << "\x1b[0m");
 #define WARN(x) println("\x1b[33mWARNING: " << x << "\x1b[0m");

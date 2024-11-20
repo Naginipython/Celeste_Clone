@@ -12,6 +12,7 @@ struct Transform {
 };
 
 enum SpriteID {
+  SPRITE_WHITE,
   SPRITE_DICE,
 
   SPRITE_COUNT
@@ -26,8 +27,12 @@ struct Sprite {
 inline Sprite get_Sprite(SpriteID id) {
   Sprite sprite{};
   switch (id) {
-    case SPRITE_DICE: 
+    case SPRITE_WHITE: 
       sprite.atlasOffset = {0, 0};
+      sprite.spriteSize = {1, 1};
+      break;
+    case SPRITE_DICE: 
+      sprite.atlasOffset = {16, 0};
       sprite.spriteSize = {16, 16};
       break;
     default: 

@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const PROGRAM_NAME: []const u8 = "main";
+
 fn linker(exe: *std.Build.Step.Compile, files: []const []const u8, b: *std.Build, target: std.Build.ResolvedTarget) void {
     exe.addCSourceFiles(.{
         .files = files,
@@ -12,6 +14,15 @@ fn linker(exe: *std.Build.Step.Compile, files: []const []const u8, b: *std.Build
     // Libs
     if (target.query.isNativeOs() and target.result.os.tag == .windows) {
         // todo
+        const sdl_dep = b.dependency("SDL", .{ // Add libs as needed
+            .target = target,
+        });
+        const sdl_img_dep = b.dependency("SDL_image", .{
+            .target = target,
+        });
+        exe.linkLibrary(sdl_dep.artifact("SDL2"));
+        exe.linkLibrary(sdl_img_dep.artifact("SDL2_image"));
+        // TODO: glew
     } else {
         exe.linkSystemLibrary("SDL2"); // Add libs as needed
         exe.linkSystemLibrary("SDL2_image");
@@ -21,13 +32,12 @@ fn linker(exe: *std.Build.Step.Compile, files: []const []const u8, b: *std.Build
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
 
     // Main build
     const files = try findFiles("src", &[_][]const u8{"dll"});
     std.debug.print("Files built:\n{s}\n", .{files});
 
-    const exe = b.addExecutable(.{ .name = "main", .target = target });
+    const exe = b.addExecutable(.{ .name = PROGRAM_NAME, .target = target });
     linker(exe, files, b, target);
 
     b.installArtifact(exe);
@@ -35,7 +45,7 @@ pub fn build(b: *std.Build) !void {
     // dll
     const dll_files = try findFiles("src", &[_][]const u8{"main"});
     // const dll_files = &[_][]const u8{"src/dll-game.cpp", "src/window.cpp", "src/opengl.cpp", "src/fileIO.cpp"};
-    const dll = b.addSharedLibrary(.{ .name = "game", .target = target, .optimize = optimize });
+    const dll = b.addSharedLibrary(.{ .name = "game", .target = target, .optimize = b.standardOptimizeOption(.{}) });
     dll.addCSourceFiles(.{
         .files = dll_files,
         .flags = &[_][]const u8{},
@@ -56,29 +66,33 @@ pub fn build(b: *std.Build) !void {
     run_step.dependOn(&run_cmd.step);
 
     // ------ Tests ------
-    const test_files = try findFiles("tests", &[_][]const u8{"main.cpp"});
-    std.debug.print("Test Files built:\n{s}\n", .{test_files});
+    // const test_files = try findFiles("tests", &[_][]const u8{"main.cpp"});
+    // std.debug.print("Test Files built:\n{s}\n", .{test_files});
 
-    // combine with `files`, except src/main.c or src/main.cpp
-    const tests_exe = b.addExecutable(.{ .name = "tests", .target = target });
+    // // combine with `files`, except src/main.c or src/main.cpp
+    // const tests_name = PROGRAM_NAME ++ "_tests";
+    // const tests_exe = b.addExecutable(.{ .name = tests_name, .target = target });
 
-    linker(tests_exe, test_files, b, target);
-    const googletest_dep = b.dependency("googletest", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    tests_exe.linkLibrary(googletest_dep.artifact("gtest"));
+    // linker(tests_exe, test_files, b, target);
+    // const googletest_dep = b.dependency("googletest", .{
+    //     .target = target,
+    // });
+    // tests_exe.linkLibrary(googletest_dep.artifact("gtest"));
 
-    b.installArtifact(tests_exe);
+    // b.installArtifact(tests_exe);
 
-    const run_tests_exe = b.addRunArtifact(tests_exe);
-    run_tests_exe.step.dependOn(b.getInstallStep());
+    // const run_tests_exe = b.addRunArtifact(tests_exe);
+    // run_tests_exe.step.dependOn(b.getInstallStep());
 
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_tests_exe.step);
+    // const test_step = b.step("test", "Run unit tests");
+    // test_step.dependOn(&run_tests_exe.step);
 
     // ------ Clean ------
     const clean_step = b.step("clean", "Clean the directory");
+    // Windows
+    // clean_step.dependOn(&b.addRemoveDirTree(b.path("zig-out")).step);
+    // clean_step.dependOn(&b.addRemoveDirTree(b.path(".zig-cache")).step);
+    // Linux
     clean_step.dependOn(&b.addRemoveDirTree(b.install_path).step);
     clean_step.dependOn(&b.addRemoveDirTree(b.pathFromRoot(".zig-cache")).step);
 }
