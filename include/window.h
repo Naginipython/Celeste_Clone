@@ -3,6 +3,7 @@
 #include "sprites.h"
 #include <SDL2/SDL.h>
 #include <string>
+#include <vector>
 
 struct GLContext {
   unsigned int programID{};
@@ -25,8 +26,7 @@ struct RenderData {
   Camera2D gameCamera;
   Camera2D uiCamera;
 
-  int transformCount;
-  Transform transforms[MAX_TRANSFORMS];
+  std::vector<Transform> transforms;
 
   inline RenderData() {
     gameCamera.dimentions = {WORLD_WIDTH, WORLD_HEIGHT};

@@ -72,7 +72,7 @@ void Window::init_gl() {
   // Transform Storage Buffer
   glGenBuffers(1, &glContext.transformBufferId);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, glContext.transformBufferId); // For the input binding
-  glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Transform) * MAX_TRANSFORMS, renderData.transforms, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Transform) * MAX_TRANSFORMS, renderData.transforms.data(), GL_DYNAMIC_DRAW);
 
   // Uniforms
   glContext.screenSizeID = glGetUniformLocation(glContext.programID, "screenSize");
@@ -131,8 +131,8 @@ void Window::gl_render() {
   glUniformMatrix4fv(glContext.projectionID, 1, GL_TRUE, &projection.ax);
 
   // copies transform data to the buffer
-  glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData.transformCount, renderData.transforms);
-  glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData.transformCount);
+  glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(Transform) * renderData.transforms.size(), renderData.transforms.data());
+  glDrawArraysInstanced(GL_TRIANGLES, 0, 6, renderData.transforms.size());
 
-  renderData.transformCount = 0;
+  renderData.transforms.clear();
 }

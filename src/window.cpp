@@ -50,7 +50,9 @@ void Window::draw_sprite(SpriteID id, Vec2 pos) {
   transform.atlasOffset = sprite.atlasOffset;
   transform.spriteSize = sprite.spriteSize;
 
-  renderData.transforms[renderData.transformCount++] = transform;
+  if (renderData.transforms.size() < MAX_TRANSFORMS)
+    renderData.transforms.push_back(transform);
+  else WARN("Max transforms reached");
 }
 void Window::draw_sprite(SpriteID id, IVec2 pos) {
   draw_sprite(id, pos.to_vec2());
@@ -63,10 +65,14 @@ void Window::draw_quad(Vec2 pos, Vec2 size) {
   transform.atlasOffset = {0, 0};
   transform.spriteSize = {1, 1};
 
-  renderData.transforms[renderData.transformCount++] = transform;
+  if (renderData.transforms.size() < MAX_TRANSFORMS)
+    renderData.transforms.push_back(transform);
+  else WARN("Max transforms reached");
 }
 void Window::draw_quad(Transform transform) {
-  renderData.transforms[renderData.transformCount++] = transform;
+  if (renderData.transforms.size() < MAX_TRANSFORMS)
+    renderData.transforms.push_back(transform);
+  else WARN("Max transforms reached");
 }
 
 Vec2 Window::screen_to_world(Vec2 screenPos) {
