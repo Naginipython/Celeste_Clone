@@ -10,6 +10,9 @@ struct GLContext {
   unsigned int transformBufferId{};
   unsigned int screenSizeID{};
   unsigned int projectionID{};
+
+  time_t textureTimestamp{};
+  time_t shaderTimestamp{};
 };
 
 struct Camera2D {
@@ -40,6 +43,7 @@ class Window {
   GLContext glContext{};
   SDL_Surface* texture;
 
+  void load_shaders();
  public:
   RenderData renderData;
   bool isRunning{true};
@@ -50,7 +54,6 @@ class Window {
   const inline int get_width() const { int w, h; SDL_GetWindowSize(window, &w, &h); return w; }
   const inline int get_height() const { int w, h; SDL_GetWindowSize(window, &w, &h); return h; }
   
-  void update();
   void gl_render();
   void draw_sprite(SpriteID id, Vec2 pos);
   void draw_sprite(SpriteID id, IVec2 pos);

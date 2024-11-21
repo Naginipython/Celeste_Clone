@@ -1,36 +1,30 @@
 #include "main.h"
 #include "window.h"
 #include <GL/glew.h>
+#include <SDL2/SDL_image.h>
 
-unsigned int create_shader(unsigned int type, const std::string& code) {
+static unsigned int create_shader(unsigned int type, const std::string& shaderPath) {
   unsigned int id = glCreateShader(type);
+  std::string code = read_file(shaderPath);
   const char* src = code.c_str();
   glShaderSource(id, 1, &src, NULL);
   glCompileShader(id);
 
-  int result;
-  glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-  if (result == GL_FALSE) {
-    int length;
-    glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-    char* message = (char*)alloca(length * sizeof(char));
-    glGetShaderInfoLog(id, length, &length, message);
-    ERROR("Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader");
+  int success;
+  char shaderLog[2048]{};
+  glGetShaderiv(id, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(id, 2048, 0, shaderLog);
     glDeleteShader(id);
-    ASSERT(false, "Failed to compile vertex shader: " << message);
-    return 0;
+    ASSERT(false, "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader: " << shaderLog);
   }
   return id;
 }
 
-void Window::init_gl() {
-  // shaders
-  std::string vertShaderCode = read_file("resources/shaders/quad.vert");
-  std::string fragShaderCode = read_file("resources/shaders/quad.frag");
-  unsigned int vertShaderId = create_shader(GL_VERTEX_SHADER, vertShaderCode);
-  unsigned int fragShaderId = create_shader(GL_FRAGMENT_SHADER, fragShaderCode);
+void Window::load_shaders() {
+  unsigned int vertShaderId = create_shader(GL_VERTEX_SHADER, "resources/shaders/quad.vert");
+  unsigned int fragShaderId = create_shader(GL_FRAGMENT_SHADER, "resources/shaders/quad.frag");
 
-  glContext.programID = glCreateProgram();
   glAttachShader(glContext.programID, vertShaderId);
   glAttachShader(glContext.programID, fragShaderId);
   glLinkProgram(glContext.programID);
@@ -39,6 +33,17 @@ void Window::init_gl() {
   glDetachShader(glContext.programID, fragShaderId);
   glDeleteShader(vertShaderId);
   glDeleteShader(fragShaderId);
+
+  time_t vertTime = get_timestamp("resources/shaders/quad.vert");
+  time_t fragTime = get_timestamp("resources/shaders/quad.frag");
+  glContext.shaderTimestamp = std::max(vertTime, fragTime);
+}
+
+void Window::init_gl() {
+  // shaders
+  glContext.programID = glCreateProgram();
+  
+  load_shaders();
 
   // Needed
   unsigned int VAO;
@@ -56,6 +61,7 @@ void Window::init_gl() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, texture->w, texture->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->pixels);
+  glContext.textureTimestamp = get_timestamp(TEXTURE_PATH);
 
   SDL_FreeSurface(texture);
   texture = NULL;
@@ -80,6 +86,31 @@ void Window::init_gl() {
 }
 
 void Window::gl_render() {
+  // Texture Hot Reload
+  time_t currTimestamp = get_timestamp(TEXTURE_PATH);
+  if (currTimestamp > glContext.textureTimestamp) {
+    glActiveTexture(GL_TEXTURE0);
+    texture = IMG_Load(TEXTURE_PATH.c_str());
+    if (texture) {
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, texture->w, texture->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->pixels);
+      SDL_FreeSurface(texture);
+      texture = NULL;
+      TRACE("Texture loaded");
+      glContext.textureTimestamp = currTimestamp;
+    } else {
+      ERROR("Failed to load texture: " << IMG_GetError());
+    }
+  }
+
+  // Shader Hot Reload
+  time_t vertTime = get_timestamp("resources/shaders/quad.vert");
+  time_t fragTime = get_timestamp("resources/shaders/quad.frag");
+  if (std::max(vertTime, fragTime) > glContext.shaderTimestamp) {
+    load_shaders();
+    TRACE("Shader reloaded");
+  }
+
+  // OpenGL rendering
   SDL_GL_SwapWindow(window);
   glViewport(0, 0, get_width(), get_height());
   glClearColor(119.0/255.0, 33.0/255.0, 111.0/255.0, 1.0);

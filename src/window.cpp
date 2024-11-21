@@ -1,9 +1,8 @@
+#include "main.h"
 #include "window.h"
 
 #include <GL/glew.h>
 #include <SDL2/SDL_image.h>
-
-#include "main.h"
 
 Window::Window(int width, int height, const std::string& title) {
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -40,14 +39,6 @@ Window::~Window() {
   SDL_DestroyWindow(window);
   IMG_Quit();
   SDL_Quit();
-}
-
-void Window::update() {
-
-  // Render
-  gl_render();
-
-  
 }
 
 void Window::draw_sprite(SpriteID id, Vec2 pos) {

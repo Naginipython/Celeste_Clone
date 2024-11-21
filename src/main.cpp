@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   while (window.isRunning) {
     reload_dll();
     update_game(window, gameState);
-    window.update();
+    window.gl_render();
   }
   
   return 0;
@@ -52,7 +52,7 @@ void reload_dll() {
       println("Failed to load symbol update_game: " << dlerror());
       dlclose(gameDLL);
     }
-    TRACE("Reloaded libgame.so");
+    TRACE("Loaded libgame.so");
     lastWrite = timestamp;
   }
 }
