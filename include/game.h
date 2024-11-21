@@ -11,7 +11,6 @@ enum GameInputType {
   MOVE_UP, MOVE_DOWN,
   JUMP,
 
-  MOUSE_LEFT, MOUSE_RIGHT, MOUSE_MIDDLE,
   GAME_INPUT_COUNT
 };
 struct KeyMapping {
@@ -39,10 +38,16 @@ class GameState {
       for (int x = 0; x < 4; x++) 
         atlasTileCoords.push_back({tileStartPos.x + x * 8, tileStartPos.y + y * 8});
     atlasTileCoords.push_back({tileStartPos.x, tileStartPos.y + 5 * 8});
+    // checking world grid
+    for (int y = 0; y < WORLD_GRID.y; y++)
+      for (int x = 0; x < WORLD_GRID.x; x++) {
+        worldGrid[x][y].isVisible = false;
+        worldGrid[x][y].neighborMask = 0;
+      }
   }
   IVec2 playerPos{0, 0};
   KeyMapping keyMapping[GAME_INPUT_COUNT];
-  Tile worldGrid[WORLD_GRID.x][WORLD_GRID.y];
+  Tile worldGrid[WORLD_GRID.x][WORLD_GRID.y]{};
   std::vector<IVec2> atlasTileCoords;
 };
 
@@ -57,3 +62,5 @@ class GameState {
 extern "C" {
   EXPORT_FN void update_game(Window& window, GameState& gameState);
 }
+void handle_input(Window& window, GameState& gameState);
+Tile* get_tile(int x, int y, GameState& gameState);
