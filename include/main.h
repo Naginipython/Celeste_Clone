@@ -6,6 +6,8 @@
 // For IO
 #include <sys/stat.h>
 
+constexpr int FPS = 60;
+constexpr double UPDATE_DELAY = 1.0 / FPS;
 constexpr int WORLD_WIDTH = 320;
 constexpr int WORLD_HEIGHT = 180;
 constexpr int TILESIZE = 8;

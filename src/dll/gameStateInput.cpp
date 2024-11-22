@@ -1,21 +1,12 @@
 #include "game.h"
 
-bool keyStates[SDL_NUM_SCANCODES] = {false};
-IVec2 mouseStates[2] = {{-1, -1}, {-1, -1}};
-
-bool is_down(GameInputType input, GameState& gameState) {
-  for (SDL_Scancode key : gameState.keyMapping[input].keys)
+bool GameState::is_down(GameInputType input) {
+  for (SDL_Scancode key : keyMapping[input].keys)
     if (keyStates[key]) return true;
   return false;
 }
 
-Tile* get_tile(IVec2 pos, GameState& gameState) {
-  int x = pos.x / TILESIZE;
-  int y = pos.y / TILESIZE;
-  return get_tile(x, y, gameState);
-}
-
-void handle_input(Window& window, GameState& gameState) {
+void GameState::handle_input(Window& window) {
   // Handle events
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
@@ -54,18 +45,18 @@ void handle_input(Window& window, GameState& gameState) {
     }
   }
 
-    // Handle input
-  if (is_down(MOVE_UP, gameState)) gameState.playerPos.y -= 1;
-  if (is_down(MOVE_DOWN, gameState)) gameState.playerPos.y += 1;
-  if (is_down(MOVE_LEFT, gameState)) gameState.playerPos.x -= 1;
-  if (is_down(MOVE_RIGHT, gameState)) gameState.playerPos.x += 1;
+  // Handle input
+  if (is_down(MOVE_UP)) playerPos.y -= 1;
+  if (is_down(MOVE_DOWN)) playerPos.y += 1;
+  if (is_down(MOVE_LEFT)) playerPos.x -= 1;
+  if (is_down(MOVE_RIGHT)) playerPos.x += 1;
   if (mouseStates[0].x != -1 && mouseStates[0].y != -1) {
-    Tile* tile = get_tile(mouseStates[0], gameState);
+    Tile* tile = get_tile(mouseStates[0]);
     if (tile != nullptr) tile->isVisible = true;
     // TRACE("Clicked: " << mouseStates[0].x << ", " << mouseStates[0].y);
   }
   if (mouseStates[1].x != -1 && mouseStates[1].y != -1) {
-    Tile* tile = get_tile(mouseStates[1], gameState);
+    Tile* tile = get_tile(mouseStates[1]);
     if (tile != nullptr) tile->isVisible = false;
   }
 }
